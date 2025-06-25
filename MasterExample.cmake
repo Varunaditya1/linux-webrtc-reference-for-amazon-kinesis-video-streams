@@ -8,6 +8,8 @@ set( WEBRTC_APPLICATION_MASTER_INCLUDE_DIRS
      "examples/master"
      "examples/app_common" )
 
+option(GENERATE_MAP_FILE "Enable generation of map file for debugging" OFF)
+
 add_executable(
     WebRTCLinuxApplicationMaster
     ${WEBRTC_APPLICATION_SIGNALING_CONTROLLER_SOURCE_FILES}
@@ -88,3 +90,17 @@ if( BUILD_USRSCTP_LIBRARY )
 endif()
 
 target_compile_options( WebRTCLinuxApplicationMaster PRIVATE -Wall -Werror )
+
+if(GENERATE_MAP_FILE)
+    if(MSVC)
+        # For Visual Studio / Windows
+        target_compile_options(WebRTCLinuxApplicationMaster PRIVATE /W4 /WX)
+        set(MAPFILE_FLAG "/MAP")
+        target_link_options(WebRTCLinuxApplicationMaster PRIVATE ${MAPFILE_FLAG})
+    else()
+        # For GCC/Clang on Linux
+        set(MAPFILE_NAME "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.map")
+        message(STATUS "Map file will be generated at: ${MAPFILE_NAME}")
+        target_link_options(WebRTCLinuxApplicationMaster PRIVATE "-Wl,-Map=${MAPFILE_NAME}")
+    endif()
+endif()

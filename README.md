@@ -68,6 +68,62 @@ Gstreamer Master Example (Refer to the [Gstreamer Master Demo](#gstreamer-master
 [2024/03/28 06:43:36:0003] E: Unable to load SSL Client certs file from  -- client ssl isn't going to work
 ```
 
+# KVS WebRTC Architecture
+
+This repository provides an overview of the architecture and flow of the KVS WebRTC system using the C SDK. It includes components related to signaling, media pipeline, and external dependencies such as STUN/TURN and AWS Kinesis Video Streams.
+
+## 📊 Architecture Diagram
+
+The diagram below illustrates the core components of the system and how they interact.
+
+```mermaid
+graph TD
+
+    24560["User<br>External Actor"]
+    subgraph 24545["External Systems"]
+        24558["Kinesis Video Streams<br>AWS"]
+        24559["STUN/TURN Services<br>Network Services"]
+    end
+    subgraph 24546["Shared Libraries & Logic<br>C / KVS SDK Components"]
+        24553["WebRTC Peer Connection Logic<br>C"]
+        24554["Signaling & Session Control<br>C"]
+        24555["KVS SDK Core Components<br>C"]
+        24556["External & Protocol Libraries<br>C / Various"]
+        24557["Example Common Utilities<br>C"]
+        24553 -->|uses| 24554
+        24553 -->|processes media via| 24555
+        24553 -->|uses crypto/transport via| 24556
+        24553 -->|uses| 24557
+        24554 -->|uses| 24555
+        24554 -->|communicates via| 24556
+        24554 -->|uses| 24557
+        24555 -->|rely on| 24556
+    end
+    subgraph 24547["KVS WebRTC GStreamer App<br>C / GStreamer / KVS SDK"]
+        24551["GStreamer App Entrypoint<br>C / GStreamer"]
+        24552["GStreamer Media Source<br>C / GStreamer"]
+        24551 -->|uses| 24552
+    end
+    subgraph 24548["KVS WebRTC Master App<br>C / KVS SDK"]
+        24549["Master App Entrypoint<br>C"]
+        24550["File Media Source<br>C"]
+        24549 -->|uses| 24550
+    end
+    24560 -->|initiates| 24549
+    24560 -->|initiates| 24551
+    24549 -->|manages| 24553
+    24549 -->|uses| 24557
+    24551 -->|manages| 24553
+    24551 -->|uses| 24557
+    24554 -->|interacts with| 24558
+    24554 -->|uses| 24559
+    24550 -->|uses| 24557
+    24552 -->|uses| 24557
+    24556 -->|signs requests for| 24558
+
+
+```
+
 ## Feature Options
 1. [Gstreamer Master Demo](#gstreamer-master-demo)
 1. [Data Channel Support](#data-channel-support)
